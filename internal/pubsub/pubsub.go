@@ -52,22 +52,17 @@ func DeclareAndBind(
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("failed to open channel: %w", err)
 	}
-
 	transient := queueType == Transient
-	durable := Durable == queueType
-
+	durable := queueType == Durable
 	table := amqp.Table{"x-dead-letter-exchange": "peril_dlx"}
-
 	qu, err := ch.QueueDeclare(queueName, durable, transient, transient, false, table)
 
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("failed to open queue: %w", err)
-
 	}
 
 	if err := ch.QueueBind(queueName, key, exchange, false, nil); err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("failed to bind queue: %w", err)
-
 	}
 	return ch, qu, nil
 }
@@ -137,6 +132,7 @@ func PubGob[T any](ch *amqp.Channel, exchange, key string, val T) error {
 	)
 
 }
+
 func PublishJSON[T any](ch *amqp.Channel, exchange, key string, val T) error {
 
 	body, err := json.Marshal(val)

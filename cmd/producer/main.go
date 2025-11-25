@@ -46,7 +46,7 @@ func main() {
 	// 5. Publish the Message
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
-	pubsub.PubJSONwithCTX(ctx, pubCh, routing.ExchangePerilTopic, routing.ProdKey, order)
+	pubsub.PubJSONwithCTX(ctx, pubCh, routing.ExchangePerilTopic, routing.Prod_Key, order)
 
 	defer cancel()
 
