@@ -2,6 +2,10 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/abdooman21/ecom-plat/internal/pubsub"
 	"github.com/abdooman21/ecom-plat/internal/routing"
@@ -27,10 +31,17 @@ func main() {
 	defer ch.Close()
 
 	failOnError(err, "Failed to declare a queue")
-	pubsub.Subscribe(conn, routing.ExchangePerilTopic, routing.Prod_Queue, routing.Prod_Key, pubsub.Durable, func(msg *Order) pubsub.AckType {
+	retryHandler := pubsub.RetryMiddleware(3, 1*time.Second, func(msg *Order) pubsub.AckType {
 		log.Printf("Received Order: %+v", msg)
 		return pubsub.Ack
-	}, pubsub.JSONUnmarshaller[Order])
+	})
+	pubsub.Subscribe(conn, routing.ExchangePerilTopic, routing.Prod_Queue, routing.Prod_Key, pubsub.Durable, retryHandler, pubsub.JSONUnmarshaller[Order])
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+
+	log.Println("Shutting down consumer...")
 
 }
 

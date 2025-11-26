@@ -33,11 +33,17 @@ func main() {
 	// 	false,          // no-wait
 	// 	nil,            // arguments
 
-	pubCh, err := conn.Channel()
+	ch, err := conn.Channel()
 	if err != nil {
 		log.Fatalf("failed to open publisher channel: %v", err)
 	}
-	defer pubCh.Close()
+	defer ch.Close()
+
+	err = ch.ExchangeDeclare(
+		routing.ExchangePerilTopic, // Name
+		"topic",                    // TYPE IS NOW TOPIC!
+		true, false, false, false, nil,
+	)
 
 	// 4. Create a Mock Order
 
